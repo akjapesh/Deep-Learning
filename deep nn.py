@@ -2,6 +2,8 @@ import numpy as np
 import h5py
 import matplotlib.pyplot as plt
 from dnn_app_utils_v3 import *
+from testCases_v4a import *
+from dnn_utils_v2 import sigmoid, sigmoid_backward, relu, relu_backward
 import time
 import scipy
 from PIL import Image
@@ -27,11 +29,12 @@ test_x=test_x_flatten/255
 
 
 def initialize_parameters(n_x,n_h,n_y):
+    np.random.seed(1)
     W1=np.random.randn(n_h,n_x)*0.01
     W2 = np.random.randn(n_y, n_h) * 0.01
     b1=np.zeros((n_h,1))
     b2=np.zeros((n_y,1))
-    np.random.seed(1)
+
     assert (W1.shape == (n_h, n_x))
     assert (b1.shape == (n_h, 1))
     assert (W2.shape == (n_y, n_h))
@@ -49,10 +52,12 @@ def initialize_parameters_deep(layer_dims):
     L=len(layer_dims)
     parameters={}
     for l in range(1,L):
-        parameters['W'+str(l)]=np.random.rand(layer_dims[l],layer_dims[l-1])*0.01
-        parameters['b'+str(l)]=np.zeros((layer_dims[l],1))
-        assert (parameters['W' + str(l)].shape == (layer_dims[l], layer_dims[l - 1]))
-        assert (parameters['b' + str(l)].shape == (layer_dims[l], 1))
+        parameters['W' + str(l)] = np.random.randn(layer_dims[l], layer_dims[l - 1])  *0.01
+        parameters['b' + str(l)] = np.zeros((layer_dims[l], 1))
+
+
+    assert (parameters['W' + str(l)].shape == (layer_dims[l], layer_dims[l - 1]))
+    assert (parameters['b' + str(l)].shape == (layer_dims[l], 1))
 
     return parameters
 
@@ -110,6 +115,7 @@ def linear_backward(dz,cache):
     assert (db.shape == b.shape)
 
     return dA_prev, dW, db
+# Set up some test inputs
 
 def linear_activation_backward(dA,cache,activation):
     linear_cache, activation_cache = cache
@@ -120,7 +126,9 @@ def linear_activation_backward(dA,cache,activation):
     elif activation=="sigmoid":
         dZ = sigmoid_backward(dA,activation_cache)
         dA_prev, dW, db = linear_backward(dZ, linear_cache)
+
     return dA_prev, dW, db
+
 
 def L_model_backward(AL,Y,caches):
     grads={}
@@ -211,7 +219,7 @@ layer_dims=[12288,20,7,5,1]
 def L_layer_model(X,Y,layer_dims,learning_rate=0.0075,num_iterations=3000,print_cost=False):
     np.random.seed(1)
     costs=[]
-    parameters=initialize_parameters_deep(layer_dims)
+    parameters=initialize_parameters_deep(layers_dims)
     for i in range(0,num_iterations):
         AL,caches=L_model_forward(X,parameters)
 
@@ -234,6 +242,3 @@ def L_layer_model(X,Y,layer_dims,learning_rate=0.0075,num_iterations=3000,print_
     return parameters
 
 
-parameters = L_layer_model(train_x, train_y, layers_dims, num_iterations = 2500, print_cost = True)
-pred_train = predict(train_x, train_y, parameters)
-pred_test = predict(test_x, test_y, parameters)
